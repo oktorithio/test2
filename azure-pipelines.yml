@@ -2,21 +2,27 @@
 # Build your Java project and run tests with Apache Maven.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
+stages:
+  - build
+  - test
+  - deploy
 
-trigger:
-- main
-
-pool:
-  vmImage: ubuntu-latest
-
-steps:
-- task: Maven@3
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+  build:
+  stage: build
+  script:
+    - mvn package -U -DskipTests
+  artifacts:
+    paths:
+    - target/
+test:
+  stage: test
+  script:
+    - mvn test
+    
+deploy:
+  stage: deploy
+  before_script: 
+    - mv target/*.jar /home/thio
+    - cd /home/thio
+  script:
+    - java -jar my-app-1.0-SNAPSHOT.jar > status.log &
